@@ -1,0 +1,25 @@
+1) 使用该优化需要先定义一个变量:
+    DEFINE_STATIC_KEY_TRUE(key, "name");
+  or:
+    DEFINE_STATIC_KEY_FALSE(key, "name");
+  该变量必须是全局的或者静态的，因为它不能存放在栈上或者在运行时申请，
+  "name"代表该变量对应的字符串，如"ABC"。
+
+2) 用法如下:
+    if (static_branch_likely(&key))
+        do likely code
+    else
+        do unlikely code
+  or:
+    if (static_branch_unlikely(&key))
+        do unlikely code
+    else
+        do likely code
+
+3) 分支可以在运行时修改：
+    a) 执行branch_change_to_likely(key)，后续数据流-'do likely code';
+    b) 执行branch_change_to_unlikely(key)，后续数据流-'do unlikely code'。
+
+注意：
+    需要在加载库时解析'__jump_table.section'，将跳转句柄注册至指定数据结构中，
+    可以参考test.cpp的实现或者使用__attribut__((constructor))。
